@@ -1,0 +1,18 @@
+#empêche l'affichage du listing des fichiers si aucun index.php ou index.html n'est présent dans le dossier
+#évite que les visiteurs voient la liste des fichiers d’un dossier vide ou mal protégé.
+Options -Indexes
+#Active le moteur de réécriture d'URL d'Apache
+RewriteEngine On
+
+#intercepter toute requête vers thunder ou thunder/ et les rediriger vers index.php?url=thunder
+RewriteRule ^(thunder)$ index.php?url=$1 [L,QSA]
+RewriteRule ^(thunder/) index.php?url=$1 [L,QSA]
+
+#les fichiers et dossiers réels sont servis normalement
+#/style.css ou /images/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+#les autres URL sont capturées et rediriger vers index.php avec l’URL d’origine passée en paramètre url
+#/blog/42 → devient index.php?url=blog/42
+RewriteRule ^(.*)$ index.php?url=$1 [L,QSA]

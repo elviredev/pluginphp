@@ -1,0 +1,7 @@
+.idea/
+!.idea/codeStyles/
+!.idea/runConfigurations/
+!.idea/inspectionProfiles/
+.idea/workspace.xml
+.idea/tasks.xml
+infos.md
