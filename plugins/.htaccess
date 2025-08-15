@@ -1,5 +1,5 @@
 #deny access to all files except
-#the index.php file, css and image files
+#the index.php file, css, js and image files
 
 <Files ~ "^.*">
   Deny from all

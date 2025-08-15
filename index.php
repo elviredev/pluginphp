@@ -17,8 +17,8 @@ require 'app'.DS.'core'.DS.'init.php'; // app/core/init.php
 // Si on est en mode DEBUG afficher les errors sinon ne pas les afficher
 DEBUG ? ini_set('display_errors', 1) : ini_set('display_errors', 0);
 
-$ACTION = [];
-$FILTER = [];
+$ACTIONS = [];
+$FILTERS = [];
 $APP['URL'] = split_url($_GET['url'] ?? 'home'); // $APP['URL'] = ['products', 'new', '1'] ou ['home']
 
 /** load plugins avant que l'application ne démarre **/

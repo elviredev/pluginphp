@@ -62,19 +62,93 @@ function get_plugin_folders(): array
  */
 function load_plugins(array $plugin_folders): bool
 {
-  $found = false;
+  $loaded = false;
 
   foreach($plugin_folders as $folder) {
-    // s'il y a au moins un dossier dans la liste, $found est mis à true
-    $found = true;
+    // s'il y a au moins un dossier dans la liste, $loaded est mis à true
+    $file = 'plugins/' . $folder . '/plugin.php';
+    if(file_exists($file)) {
+      require $file;
+      $loaded = true;
+    }
+
   }
 
-  return $found;
+  return $loaded;
 }
 
+/**
+ * @desc Permet d'ajouter, enregistrer une fonction (ou callback) associée à un nom de hook
+ * @param string $hook
+ * @param mixed $func
+ * @return bool
+ */
+function add_action(string $hook, mixed $func): bool
+{
+  global $ACTIONS;
+  $ACTIONS[$hook] = $func;
 
+  return true;
+}
 
+/**
+ * @desc Permet d'exécuter les fonctions enregistrées (actions) sur un hook donné
+ * @param string $hook
+ * @param array $data
+ * @return void
+ */
+function do_action(string $hook, array $data = []): void
+{
+  global $ACTIONS;
 
+  if (!empty($ACTIONS[$hook])) {
+    $ACTIONS[$hook]($data);
+  }
+}
+
+function add_filter()
+{
+
+}
+
+function do_filter()
+{
+
+}
+
+/**
+ * @desc Permet d'imprimer du code
+ * @param $data
+ * @return void
+ */
+function dd($data): void
+{
+  echo "<div style='margin: 1px; background-color: #444; color: white; padding: 5px 10px;'>";
+  print_r($data);
+  echo "</div>";
+}
+
+/**
+ * @desc Vérifier sur quelle page nous sommes Retourne le 1er élément de l'url courante
+ * ex: http://pluginphp.test/products/new/1 -> URL(0) => 'products'
+ * @return mixed|string
+ */
+function page(): mixed
+{
+  return URL(0);
+}
+
+/**
+ * @desc Rediriger le navigateur vers une autre page
+ * ex: redirect("404") va envoyer une redirection vers http://pluginphp.test/404 et arrêter le script.
+ * @param $url
+ * @return void
+ */
+function redirect($url): void
+{
+  header("Location: " . ROOT . '/' . $url);
+  die;
+}
 
 
 
