@@ -28,7 +28,6 @@ class App
     // Récupère le contenu actuel du tampon de sortie.
     // Ce contenu correspond à tout ce qui a été affiché avant la vue.
     $before_content = ob_get_contents();
-    ob_end_clean();
 
     // Hook qui déclenche l'affichage de la vue.
     // La vue devrait normalement générer du HTML et l'envoyer au tampon de sortie.

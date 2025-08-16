@@ -81,12 +81,18 @@ function load_plugins(array $plugin_folders): bool
  * @desc Permet d'ajouter, enregistrer une fonction (ou callback) associée à un nom de hook
  * @param string $hook
  * @param mixed $func
+ * @param int $priority
  * @return bool
  */
-function add_action(string $hook, mixed $func): bool
+function add_action(string $hook, mixed $func, int $priority = 10): bool
 {
   global $ACTIONS;
-  $ACTIONS[$hook] = $func;
+
+  while (!empty($ACTIONS[$hook][$priority])) {
+    $priority++;
+  }
+
+  $ACTIONS[$hook][$priority] = $func;
 
   return true;
 }
@@ -102,7 +108,10 @@ function do_action(string $hook, array $data = []): void
   global $ACTIONS;
 
   if (!empty($ACTIONS[$hook])) {
-    $ACTIONS[$hook]($data);
+    ksort($ACTIONS[$hook]);
+    foreach ($ACTIONS[$hook] as $func) {
+      $func($data);
+    }
   }
 }
 
@@ -123,9 +132,9 @@ function do_filter()
  */
 function dd($data): void
 {
-  echo "<div style='margin: 1px; background-color: #444; color: white; padding: 5px 10px;'>";
+  echo "<pre><div style='margin: 1px; background-color: #444; color: white; padding: 5px 10px;'>";
   print_r($data);
-  echo "</div>";
+  echo "</div></pre>";
 }
 
 /**
