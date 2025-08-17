@@ -16,22 +16,19 @@ function split_url($url): array
 /**
  * @desc Récupère une URL depuis la variable globale $APP['URL']
  * Peut retourner une URL spécifique (selon une clé) ou tout le tableau
- * @param string $key
+ * @param int|string $key
  * @return mixed|string
  */
-function URL(string $key = ''): mixed
+function URL(int|string $key = ''): mixed
 {
   global $APP;
-
-  if(!empty($key)) {
-    if(!empty($APP['URL'][$key])) {
-      return $APP['URL'][$key];
-    }
-  } else {
-    return $APP['URL'];
+  // Si on demande un index particulier
+  if ($key !== '' && isset($APP['URL'][$key])) {
+    return $APP['URL'][$key]; // retourne directement la string
   }
 
-  return '';
+  // Si pas de clé -> renvoyer tout le tableau
+  return $APP['URL'];
 }
 
 /**
@@ -56,25 +53,82 @@ function get_plugin_folders(): array
 }
 
 /**
- * @desc Vérifier s'il y a au moins un plugin à charger mais ne charge aucun plugin pour l'instant
- * @param array $plugin_folders
- * @return bool
+ * @desc Charge dynamiquement les plugins actifs d’un projet.
+ * @param array $plugin_folders Liste des dossiers de plugins à analyser
+ * @return bool TRUE si au moins un plugin a été chargé, FALSE sinon.
  */
 function load_plugins(array $plugin_folders): bool
 {
+  global $APP;
   $loaded = false;
 
+  // Parcourt chaque dossier de plugin fourni
   foreach($plugin_folders as $folder) {
-    // s'il y a au moins un dossier dans la liste, $loaded est mis à true
-    $file = 'plugins/' . $folder . '/plugin.php';
-    if(file_exists($file)) {
-      require $file;
-      $loaded = true;
-    }
+    $file = 'plugins/' . $folder . '/config.json';
 
+    // vérifier si config.json existe
+    if(file_exists($file)) {
+      // transform json string en object
+      $json = json_decode(file_get_contents($file));
+      // vérifier si c'est bien un object et si un id unique est défini
+      if(is_object($json) && isset($json->id)) {
+        // vérifier que le plugin est marqué comme actif (`active = true`)
+        if (!empty($json->active)) {
+          $file = 'plugins/' . $folder . '/plugin.php';
+          // s'assurer que plugin.php existe avant de continuer et que la route actuelle est valide
+          if(file_exists($file) && valid_route($json)) {
+            // si file existe, ajouter des métadonnées utiles au plugin et l'ajouter dans `$APP['plugins']`
+            $json->index_file = $file;
+            $json->path = 'plugins/' . $folder . '/';
+            $json->http_path = ROOT . '/' . $json->path;
+
+            $APP['plugins'][] = $json;
+          }
+        }
+      }
+    }
+  }
+
+  // charger les plugins
+  if(!empty($APP['plugins'])) {
+    foreach($APP['plugins'] as $json) {
+      if(file_exists($json->index_file)) {
+        // Inclut chaque fichier `plugin.php` trouvé pour exécuter le code des plugins
+        require $json->index_file;
+        $loaded = true;
+      }
+    }
   }
 
   return $loaded;
+}
+
+/**
+ * @desc Vérifie si un plugin est autorisé à s’exécuter sur la page courante.
+ * @param object $json L’objet JSON décodé du fichier `config.json` d’un plugin.
+ * @return bool Retourne TRUE si le plugin est autorisé à s’exécuter sur la page en cours, FALSE sinon.
+ */
+function valid_route(object $json): bool
+{
+  // Vérifie la liste des routes interdites
+  if (!empty($json->routes->off) && is_array($json->routes->off)) {
+    // si la page courante est dans le tableau "off", le plugin est désactivé
+    if (in_array(page(), $json->routes->off))
+      return false;
+  }
+
+  // Vérifie la liste des routes autorisées
+  if (!empty($json->routes->on) && is_array($json->routes->on)) {
+    // Si la valeur `"all"` est présente, le plugin est actif sur toutes les pages.
+    if ($json->routes->on[0] == 'all')
+      return true;
+    // Si la page courante figure dans `routes.on`, le plugin est actif.
+    if (in_array(page(), $json->routes->on))
+      return true;
+  }
+
+  // Si aucune condition n’est remplie, le plugin n’est pas chargé.
+  return false;
 }
 
 /**
@@ -138,13 +192,14 @@ function dd($data): void
 }
 
 /**
- * @desc Vérifier sur quelle page nous sommes Retourne le 1er élément de l'url courante
+ * @desc Vérifier sur quelle page nous sommes
+ * Retourne le premier segment de l’URL (ou une chaîne vide si inexistant)
  * ex: http://pluginphp.test/products/new/1 -> URL(0) => 'products'
- * @return mixed|string
+ * @return string
  */
-function page(): mixed
+function page(): string
 {
-  return URL(0);
+  return URL(0) ?? '';
 }
 
 /**
