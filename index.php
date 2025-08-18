@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-use app\core\App;
+use Core\App;
 
 require 'config.php';
 

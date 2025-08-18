@@ -214,7 +214,45 @@ function redirect($url): void
   die;
 }
 
+/**
+ * @desc Permet d'obtenir le dossier du plugin courant
+ */
+function plugin_dir(): string
+{
+  $called_from = debug_backtrace();
+  $key = array_search(__FUNCTION__, array_column($called_from, 'function'));
 
+  return get_plugin_dir(debug_backtrace()[$key]['file']);
+}
+
+
+function plugin_http_dir(): string
+{
+  $called_from = debug_backtrace();
+  $key = array_search(__FUNCTION__, array_column($called_from, 'function'));
+
+  return ROOT . DIRECTORY_SEPARATOR . get_plugin_dir(debug_backtrace()[$key]['file']);
+}
+
+/**
+ * @desc Permet d'obtenir le dossier du plugin courant
+ * @param string $filepath
+ * @return string
+ */
+function get_plugin_dir(string $filepath): string
+{
+  $path = "";
+
+  $basename = basename($filepath);
+  $path = str_replace($basename, '', $filepath);
+
+  if (str_contains($path, DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR)) {
+    $parts = explode(DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR, $path);
+    $path = 'plugins' .DIRECTORY_SEPARATOR .$parts[1];
+  }
+
+  return $path;
+}
 
 
 

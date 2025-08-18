@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="<?= plugin_http_dir().'css/style.css' ?>">
 <?php
 
 add_action('controller', function () {
