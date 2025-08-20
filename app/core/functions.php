@@ -1,6 +1,107 @@
 <?php
 
 /**
+ * @desc Sert à stocker des données spécifiques à un plugin (clés/valeurs) dans $USER_DATA
+ * Définit une ou plusieurs valeurs pour un plugin en fonction de son identifiant.
+ * Cette fonction associe une clé ou un tableau de clés/valeurs à un plugin donné,
+ * identifié automatiquement via son fichier `config.json`. Les données sont stockées
+ * dans la variable globale `$USER_DATA`.
+ * @param string|array $key Clé unique (string) ou tableau associatif (clé => valeur)
+ * @param mixed $value Valeur associée si $key est une chaîne. Ignoré si $key est un tableau
+ * @return bool
+ */
+function set_value(string|array $key, mixed $value = ''): bool
+{
+  global $USER_DATA;
+
+  $called_from = debug_backtrace();
+  $ikey = array_search(__FUNCTION__, array_column($called_from, 'function'));
+  $path = get_plugin_dir(debug_backtrace()[$ikey]['file']) . 'config.json';
+
+  if (file_exists($path)) {
+    $json = json_decode(file_get_contents($path));
+    $plugin_id = $json->id;
+
+    if (is_array($key)) {
+      foreach ($key as $k => $value) {
+        $USER_DATA[$plugin_id][$k] = $value;
+      }
+    } else {
+      $USER_DATA[$plugin_id][$key] = $value;
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * @desc Récupère une valeur stockée pour un plugin en fonction de son identifiant
+ * Cette fonction récupère une donnée sauvegardée via `set_value()`,
+ * en utilisant le fichier `config.json` du plugin pour déterminer l’identifiant.
+ * @param string $key (optionnel) Clé à récupérer.
+ *                    Si vide, retourne toutes les données associées au plugin
+ * @return mixed Retourne la valeur associée à la clé demandée,
+ *                un tableau de toutes les données du plugin si $key est vide,
+ *                ou null si la clé ou le plugin n’existe pas.
+ */
+function get_value(string $key = ''): mixed
+{
+  global $USER_DATA;
+
+  $called_from = debug_backtrace();
+  $ikey = array_search(__FUNCTION__, array_column($called_from, 'function'));
+  $path = get_plugin_dir(debug_backtrace()[$ikey]['file']) . 'config.json';
+
+  if (file_exists($path)) {
+    $json = json_decode(file_get_contents($path));
+    $plugin_id = $json->id;
+
+    if (empty($key)) {
+      return $USER_DATA[$plugin_id];
+    }
+
+    return !empty($USER_DATA[$plugin_id][$key]) ? $USER_DATA[$plugin_id][$key] : null;
+  }
+
+  return null;
+}
+
+/**
+ * @desc Récupère une valeur de configuration depuis la variable globale $APP
+ * @param string|null $key (optionnel)
+ *         - Si la clé existe, retourne la valeur associée.
+ *         - Si la clé n'existe pas, retourne null.
+ *         - Si aucune clé n'est fournie, retourne le tableau complet $APP.
+ * @return mixed|null
+ */
+function APP(?string $key = null): mixed
+{
+  global $APP;
+
+  if(!empty($key)){
+    return !empty($APP[$key]) ? $APP[$key] : null;
+  } else {
+    return $APP;
+  }
+}
+
+/**
+ * @desc Pour le debugging, permet de voir les plugins chargés sur la page courante
+ * @return void
+ */
+function show_plugins(): void
+{
+  global $APP;
+
+  // vérifier que $APP['plugins'] existe et si c'est bien un tableau
+  $plugins = $APP['plugins'] ?? [];
+  $names = is_array($plugins) ? array_column($plugins, 'name') : [];
+  dd($names);
+}
+
+/**
  * @desc Découpe l'URL en segments
  * trim() supprime les / au début et à la fin de l'URL
  * explode() coupe la chaîne en morceaux là où il y a un /

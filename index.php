@@ -1,8 +1,6 @@
 <?php
 session_start();
 
-use Core\App;
-
 require 'config.php';
 
 $minPHPVersion = '8.0';
@@ -20,6 +18,7 @@ DEBUG ? ini_set('display_errors', 1) : ini_set('display_errors', 0);
 $ACTIONS = [];
 $FILTERS = [];
 $APP['URL'] = split_url($_GET['url'] ?? 'home'); // $APP['URL'] = ['products', 'new', '1'] ou ['home']
+$USER_DATA = [];
 
 /** load plugins avant que l'application ne démarre **/
 // Récupère la liste des plugins installés
@@ -34,7 +33,7 @@ if(!load_plugins($PLUGINS))
   ");
 }
 
-$app = new App();
+$app = new \Core\App();
 $app->index();
 
 
