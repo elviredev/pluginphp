@@ -3,6 +3,8 @@
 namespace Model;
 use Core\Database;
 
+defined('ROOT') or die('Direct script access denied');
+
 /**
  * Classe Model
  *
