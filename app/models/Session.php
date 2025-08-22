@@ -169,4 +169,20 @@ class Session
     return null;
   }
 
+
+  /**
+   * @desc Récupère toutes les données enregistrées dans la session APP
+   * @return mixed Tableau associatif des données stockées ou false si vide
+   */
+  public function all(): mixed
+  {
+    $this->startSession();
+
+    if (!empty($_SESSION[$this->varKey])) {
+      return $_SESSION[$this->varKey];
+    }
+
+    return false;
+  }
+
 }
