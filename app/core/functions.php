@@ -355,6 +355,16 @@ function get_plugin_dir(string $filepath): string
   return $path;
 }
 
+/**
+ * @desc Gérer les permissions utilisateur
+ * @param $permission
+ * @return true
+ */
+function user_can($permission)
+{
+  return true;
+}
+
 
 
 
