@@ -4,8 +4,8 @@ namespace Core;
 defined('ROOT') or die('Direct script access denied');
 
 /**
+ * @desc Stocke les infos de l'utilisateur connecté
  * Session class
- * Stocke les infos de l'utilisateur connecté
  */
 class Session
 {
@@ -13,7 +13,7 @@ class Session
   private string $userKey = 'USER';
 
   /**
-   * Si true (retourne 1) démarrer la session
+   * @desc Si statut à true (1) -> démarrer la session
    * @return int
    */
   public function startSession(): int
@@ -23,6 +23,7 @@ class Session
 
     return 1;
   }
+
 
   /**
    * @desc Stocke une ou plusieurs valeurs dans la session sous la clé principale "APP"
@@ -50,6 +51,7 @@ class Session
     return false;
   }
 
+
   /**
    * @desc Récupère une valeur enregistrée en session sous la clé principale "APP"
    * @param string $key Nom de la clé à récupérer
@@ -65,6 +67,7 @@ class Session
 
     return false;
   }
+
 
   /**
    * @desc Authentifie un utilisateur en enregistrant ses données dans la session
@@ -82,6 +85,7 @@ class Session
 
     return true;
   }
+
 
   /**
    * @desc Vérifie si un utilisateur est actuellement connecté
@@ -107,6 +111,7 @@ class Session
     return false;
   }
 
+
   /**
    * @desc Réinitialise complètement la session
    *
@@ -121,6 +126,7 @@ class Session
 
     return true;
   }
+
 
   /**
    * @desc Déconnecte l'utilisateur actuellement authentifié
@@ -138,6 +144,7 @@ class Session
 
     return true;
   }
+
 
   /**
    * @desc Récupère les données de l'utilisateur connecté

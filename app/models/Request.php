@@ -4,7 +4,7 @@ namespace Core;
 defined('ROOT') or die('Direct script access denied');
 
 /**
- * @@desc Permet de simplifier la gestion des requêtes HTTP
+ * @desc Permet de simplifier la gestion des requêtes HTTP
  * Request class
  */
 class Request
@@ -20,6 +20,7 @@ class Request
     return $_SERVER['REQUEST_METHOD'];
   }
 
+
   /**
    * @desc Vérifie si la requête est une requête POST.
    * @return bool TRUE si la méthode HTTP est POST, FALSE sinon.
@@ -28,6 +29,7 @@ class Request
   {
     return $_SERVER['REQUEST_METHOD'] == 'POST';
   }
+
 
   /**
    * @desc Récupère une donnée envoyée via la méthode POST.
@@ -50,6 +52,7 @@ class Request
     return '';
   }
 
+
   /**
    * @desc Récupère une valeur d'entrée envoyée en POST avec une valeur par défaut
    *
@@ -66,6 +69,7 @@ class Request
 
     return $default;
   }
+
 
   /**
    * @desc Récupère une donnée envoyée via la méthode GET
@@ -88,6 +92,7 @@ class Request
     return '';
   }
 
+
   /**
    * @desc Récupère un ou plusieurs fichiers envoyés via un formulaire
    *
@@ -109,6 +114,7 @@ class Request
 
     return '';
   }
+
 
   /**
    * @desc Récupère une donnée depuis la requête (GET, POST, COOKIE)
