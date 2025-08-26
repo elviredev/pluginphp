@@ -1,0 +1,1 @@
+<center>Website | Copyright 2025</center>

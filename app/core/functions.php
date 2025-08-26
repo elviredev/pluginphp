@@ -316,24 +316,45 @@ function redirect($url): void
 }
 
 /**
- * @desc Permet d'obtenir le dossier du plugin courant
+ * @desc Génère le chemin système absolu vers un fichier d'un plugin
+ *
+ * Cette fonction utilise `debug_backtrace()` pour identifier le fichier source
+ * qui appelle la fonction, puis en déduit le dossier du plugin via
+ * `get_plugin_dir()`. Le chemin retourné est un chemin système (filesystem).
+ *
+ * @param string $path Chemin relatif à partir du répertoire du plugin
+ * (par défaut chaîne vide).
+ *
+ * @return string Chemin absolu sur le système de fichiers vers
+ * la ressource du plugin.
  */
-function plugin_dir(): string
+function plugin_path(string $path = ''): string
 {
   $called_from = debug_backtrace();
   $key = array_search(__FUNCTION__, array_column($called_from, 'function'));
 
-  return get_plugin_dir(debug_backtrace()[$key]['file']);
+  return get_plugin_dir(debug_backtrace()[$key]['file']) . $path;
 }
 
-
-function plugin_http_dir(): string
+/**
+ * @desc Génère l'URL/chemin HTTP vers un fichier d'un plugin.
+ *
+ * Cette fonction est similaire à `plugin_path()`,mais elle préfixe le chemin
+ * du plugin avec la constante `ROOT`
+ * (correspondant à la racine du site en HTTP).
+ * Elle est utile pour générer une URL vers des fichiers
+ * accessibles publiquement.
+ * @param string $path
+ * @return string
+ */
+function plugin_http_path(string $path = ''): string
 {
   $called_from = debug_backtrace();
   $key = array_search(__FUNCTION__, array_column($called_from, 'function'));
 
-  return ROOT . DIRECTORY_SEPARATOR . get_plugin_dir(debug_backtrace()[$key]['file']);
+  return ROOT . DIRECTORY_SEPARATOR . get_plugin_dir(debug_backtrace()[$key]['file']) .$path;
 }
+
 
 /**
  * @desc Permet d'obtenir le dossier du plugin courant
