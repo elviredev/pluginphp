@@ -9,10 +9,10 @@ add_action('after_view', function () {
 });
 
 add_action('view', function () {
-  $limit = 10;
-  $pager = new \Core\Pager($limit);
-  $offset = $pager->offset;
-  $pager->display();
+//  $limit = 10;
+//  $pager = new \Core\Pager($limit);
+//  $offset = $pager->offset;
+//  $pager->display();
 //  $pager->displayTailwind();
 });
 
