@@ -560,6 +560,31 @@ function csrf_verify(array $post, string $sessionKey = 'csrf'): bool
   return false;
 }
 
+/**
+ * @desc Retourne le chemin complet d'une image en fonction de son existence et de son type
+ *
+ * @param string $path Chemin relatif vers l'image. Par défaut, chaîne vide
+ * @param string $type Type d'image à retourner si le fichier n'existe pas
+ * @return string Chemin complet vers l'image existante ou l'image par défaut
+ */
+function get_image(string $path = '', string $type = 'post'): string
+{
+  // Si le fichier existe, on retourne son chemin complet
+  if (file_exists($path))
+    return ROOT . '/' . $path;
+
+  // Tableau de correspondance des images par défaut
+  $defaultImages = [
+    'post'   => 'no_image.jpg',
+    'male'   => 'user_male.jpg',
+    'female' => 'user_female.jpg',
+  ];
+
+  // On retourne l'image correspondant au type, ou 'no_image.jpg' par défaut
+  $filename = $defaultImages[$type] ?? 'no_image.jpg';
+  return ROOT . '/assets/images/' . $filename;
+}
+
 
 
 

@@ -30,8 +30,9 @@ class Image
 
     // Si l'image existe, vérifier son type
     $type = mime_content_type($filename);
+    $image = null;
 
-    // Créer une ressource image
+    // Charger l'image selon le type
     switch ($type)
     {
       case 'image/jpeg':
@@ -50,6 +51,43 @@ class Image
         return $filename;
         break;
     }
+
+    if (!$image) return $filename;
+
+    // --- Gestion EXIF pour JPEG ---
+
+    if ($type === 'image/jpeg' && function_exists('exif_read_data')) {
+      $exif = @exif_read_data($filename);
+      if (!empty($exif['Orientation'])) {
+        switch ($exif['Orientation']) {
+          case 2: // Miroir horizontal
+            imageflip($image, IMG_FLIP_HORIZONTAL);
+            break;
+          case 3: // 180°
+            $image = imagerotate($image, 180, 0);
+            break;
+          case 4: // Miroir vertical
+            imageflip($image, IMG_FLIP_VERTICAL);
+            break;
+          case 5: // 90° CW + miroir horizontal
+            $image = imagerotate($image, -90, 0);
+            imageflip($image, IMG_FLIP_HORIZONTAL);
+            break;
+          case 6: // 90° CW
+            $image = imagerotate($image, -90, 0);
+            break;
+          case 7: // 270° CW + miroir horizontal
+            $image = imagerotate($image, 90, 0);
+            imageflip($image, IMG_FLIP_HORIZONTAL);
+            break;
+          case 8: // 270° CW
+            $image = imagerotate($image, 90, 0);
+            break;
+        }
+      }
+    }
+
+    // --- Redimensionnement ---
 
     // Récupérer largeur et hateur de la source de l'image
     $src_w = imagesx($image);
@@ -89,6 +127,8 @@ class Image
     // Copie et redimensionnement
     imagecopyresampled($dst_image, $image, 0, 0, 0, 0, $dst_w, $dst_h, $src_w, $src_h);
     imagedestroy($image);
+
+    // --- Enregistrement ---
 
     // Enregistrer l'image redimensionnée : on réécrit le même fichier (le fichier original est écrasé)
     switch ($type)
