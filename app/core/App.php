@@ -21,6 +21,7 @@ class App
 
     // --- PHASE 2 : Préparation et exécution de la vue ---
 
+    ob_start();
     // Hook exécuté avant l'affichage de la vue.
     // Utile pour injecter du HTML commun (header, menu, etc.)
     do_action("before_view");

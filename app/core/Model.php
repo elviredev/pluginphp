@@ -124,9 +124,9 @@ class Model extends Database
    */
   public function insert(array $data)
   {
-    if (!empty($this->allowedInsertColumns)) {
+    if (!empty($this->allowedColumns)) {
       foreach ($data as $key => $value) {
-        if (!in_array($key, $this->allowedInsertColumns)) {
+        if (!in_array($key, $this->allowedColumns)) {
           // Supprime colonnes indésirables
           unset($data[$key]);
         }

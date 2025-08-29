@@ -1,5 +1,10 @@
 <?php
 
+add_filter('user_permissions', function ($permissions) {
+
+  return $permissions;
+});
+
 add_action('controller', function () {
 
 });

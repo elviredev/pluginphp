@@ -68,6 +68,30 @@ class Session
     return false;
   }
 
+  /**
+   * @desc Récupère une valeur de session puis la supprime immédiatement.
+   * Cette méthode est utile pour les données temporaires qui ne doivent être
+   * lues qu'une seule fois (par exemple un message flash, un token expiré, etc.).
+   * @param string $key Nom de la clé stockée sous $_SESSION[$this->varKey][$key]
+   * @return mixed Retourne la valeur de session si elle existe,
+   *               puis la supprime. Retourne false si la clé est absente.
+   */
+  public function pop(string $key): mixed
+  {
+    $this->startSession();
+    // Vérifie si une valeur existe dans $_SESSION['APP']['key']
+    if (!empty($_SESSION[$this->varKey][$key])) {
+      // Si oui sauvegarde dans $sessionValue
+      $sessionValue = $_SESSION[$this->varKey][$key];
+      // Supprime l’entrée de $_SESSION
+      unset($_SESSION[$this->varKey][$key]);
+      // Retourne la valeur supprimée
+      return $sessionValue;
+    }
+
+    return false;
+  }
+
 
   /**
    * @desc Authentifie un utilisateur en enregistrant ses données dans la session

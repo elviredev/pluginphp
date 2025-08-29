@@ -270,13 +270,30 @@ function do_action(string $hook, array $data = []): void
   }
 }
 
-function add_filter()
+function add_filter(string $hook, mixed $func, int $priority = 10): bool
 {
+  global $FILTER;
 
+  while (!empty($FILTER[$hook][$priority])) {
+    $priority++;
+  }
+
+  $FILTER[$hook][$priority] = $func;
+
+  return true;
 }
 
 function do_filter(string $hook, mixed $data = ''): mixed
 {
+  global $FILTER;
+
+  if (!empty($FILTER[$hook])) {
+    ksort($FILTER[$hook]);
+    foreach ($FILTER[$hook] as $func) {
+      $data = $func($data);
+    }
+  }
+
   return $data;
 }
 
@@ -383,8 +400,169 @@ function get_plugin_dir(string $filepath): string
  */
 function user_can($permission)
 {
+  global $APP;
+
   return true;
 }
+
+/**
+ * @desc Récupère une ancienne valeur soumise dans un formulaire (sécurisée).
+ *
+ * Cette fonction permet de pré-remplir des champs de formulaire
+ * avec les valeurs précédemment soumises (POST, GET, ...),
+ * en échappant automatiquement les caractères spéciaux pour éviter
+ * les failles XSS.
+ *
+ * @param string $key     Nom du champ à récupérer (clé dans $_POST)
+ * @param string $default Valeur par défaut à retourner si aucune valeur n'est trouvée
+ * @param string $type    Source de données à utiliser : 'POST' (par défaut) ou 'GET'
+ * @return string         Valeur trouvée dans la source si elle existe,
+ *                        sinon la valeur par défaut.
+ */
+function old_value(string $key, string $default = '', string $type = 'POST'): string
+{
+  $source = match (strtoupper($type)) {
+    'GET' => $_GET,
+    'POST' => $_POST,
+    default => [],
+  };
+
+  if (!empty($source[$key]))
+    return htmlspecialchars((string)$source[$key], ENT_QUOTES, 'UTF-8');
+
+  return $default;
+}
+
+/**
+ * @desc Détermine si une option d’un <select> doit être marquée comme "selected"
+ *
+ * Cette fonction permet de conserver la valeur choisie par l’utilisateur
+ * dans un menu déroulant après soumission du formulaire, ou d’appliquer
+ * une valeur par défaut si aucune donnée n’a encore été envoyée.
+ *
+ * @param string $key     Nom du champ (clé dans $_POST ou $_GET)
+ * @param string $value   Valeur de l’option <option> à comparer
+ * @param string $default Valeur par défaut à sélectionner si aucune donnée n’est envoyée
+ * @param string $type    Source des données : 'POST' (par défaut) ou 'GET'
+ * @return string         Retourne 'selected' si la valeur correspond,
+ *                        sinon retourne une chaîne vide
+ */
+function old_selected(string $key, string $value, string $default = '', string $type = 'POST'): string
+{
+  $source = match (strtoupper($type)) {
+    'GET' => $_GET,
+    'POST' => $_POST,
+    default => [],
+  };
+
+  if (!empty($source[$key])) {
+    if ($source[$key] == $value)
+      return 'selected';
+  } else {
+    if ($default == $value)
+      return 'selected';
+  }
+
+  return '';
+}
+
+/**
+ * @desc Détermine si une checkbox doit être marquée comme "checked"
+ *
+ * @param string $key     Nom du champ (clé dans $_POST ou $_GET)
+ * @param string $value   Valeur à comparer
+ * @param string $default Valeur par défaut à sélectionner si aucune donnée n’est envoyée
+ * @param string $type    Source des données : 'POST' (par défaut) ou 'GET'
+ * @return string         Retourne 'checked' si la valeur correspond,
+ *                         sinon retourne une chaîne vide
+ */
+function old_checked(string $key, string $value, string $default = '', string $type = 'POST'): string
+{
+  $source = match (strtoupper($type)) {
+    'GET' => $_GET,
+    'POST' => $_POST,
+    default => [],
+  };
+
+  if (!empty($source[$key])) {
+    if ($source[$key] == $value)
+      return 'checked';
+  } else {
+    if ($default == $value)
+      return 'checked';
+  }
+
+  return '';
+}
+
+/**
+ * @desc Génère un token CSRF et le stocke en session si aucun token valide n'existe déjà.
+ *  Retourne un champ <input type="hidden"> contenant la valeur du token.
+ * @param string $sessionKey Nom de la clé de session utilisée pour stocker le token.
+ *                           Doit être identique entre csrf() et csrf_verify().
+ *                           Par défaut : "csrf".
+ * @param int $hours         Durée de validité du token en heures. Par défaut : 1 heure
+ * @return string            Champ <input hidden> prêt à être inséré dans un formulaire
+ */
+function csrf(string $sessionKey = 'csrf', int $hours = 1): string
+{
+  $session = new \Core\Session;
+  $data = $session->get($sessionKey);
+
+  // Si pas de token existant ou si expiré, on en génère un nouveau
+  if (!is_array($data) || $data['expires'] < time()) {
+    $key = hash('sha256', time() . rand(0,99));
+    $expires = time() + 3600 *$hours;
+
+    $data = [
+      'key' => $key,
+      'expires' => $expires
+    ];
+    $session->set($sessionKey, $data);
+  }
+
+  return "<input type='hidden' value='{$data['key']}' name='$sessionKey' />";
+}
+
+/**
+ * @desc Vérifie la validité d'un token CSRF envoyé via POST en
+ * le comparant à celui stocké en session
+ * @param array $post         Données POST (ex: $_POST ou $req->post())
+ * @param string $sessionKey  Nom de la clé de session où le token est stocké.
+ *                            Par défaut : "csrf".
+ * @return bool               Retourne true si :
+ *                              - Un token est présent dans $post
+ *                              - Le token correspond à celui stocké en session
+ *                              - Le token n'a pas expiré
+ *                             Sinon retourne false.
+ */
+function csrf_verify(array $post, string $sessionKey = 'csrf'): bool
+{
+  if (empty($post[$sessionKey]))
+    return false;
+
+  $session = new \Core\Session;
+  $data = $session->get($sessionKey);
+
+  if (is_array($data)) {
+    // Mauvaise clé
+    if ($data['key'] !== $post[$sessionKey])
+      return false;
+
+    // Token encore valide
+    if ($data['expires'] > time())
+      return true;
+
+    // Token expiré → on le supprime de la session
+    $session->pop($sessionKey);
+  }
+
+  return false;
+}
+
+
+
+
 
 
 
